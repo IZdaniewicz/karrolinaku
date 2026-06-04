@@ -1,0 +1,142 @@
+﻿
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+.shikaku-page {
+    --page-gap: clamp(0.5rem, 1.6vw, 1.5rem);
+    --board-frame: clamp(2px, 0.45vmin, 6px);
+    --board-border: 1px;
+    min-height: 100dvh;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    padding: var(--page-gap);
+    color: #e8dcc8;
+    font-family: monospace;
+}
+
+.game-shell {
+    --available-width: calc(100vw - (2 * var(--page-gap)));
+    --available-height: calc(100dvh - (2 * var(--page-gap)));
+    --board-chrome: calc((2 * var(--board-frame)) + (2 * var(--board-border)));
+    --cell-size: min( calc((var(--available-width) - var(--board-chrome)) / var(--cols)), calc((var(--available-height) - var(--board-chrome)) / var(--rows)) );
+    width: var(--available-width);
+    height: var(--available-height);
+    display: grid;
+    place-items: center;
+}
+
+.board-card {
+    box-sizing: content-box;
+    width: calc(var(--cell-size) * var(--cols));
+    height: calc(var(--cell-size) * var(--rows));
+    max-width: calc(100% - var(--board-chrome));
+    max-height: calc(100% - var(--board-chrome));
+    padding: var(--board-frame);
+    border: var(--board-border) solid rgba(142, 157, 198, 0.28);
+    border-radius: clamp(8px, 1.2vmin, 16px);
+    background: linear-gradient(145deg, rgba(19, 24, 36, 0.96), rgba(9, 12, 19, 0.98));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.035) inset, 0 22px 70px rgba(0, 0, 0, 0.62);
+}
+
+.shikaku-board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--cell-size));
+    grid-template-rows: repeat(var(--rows), var(--cell-size));
+    width: calc(var(--cell-size) * var(--cols));
+    height: calc(var(--cell-size) * var(--rows));
+    overflow: hidden;
+    border-radius: clamp(6px, 0.9vmin, 12px);
+    background: #141820;
+    touch-action: none;
+}
+
+.shikaku-cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid rgba(122, 137, 176, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: #fff4df;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.48rem, calc(var(--cell-size) * 0.42), 1.2rem);
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.75);
+    cursor: crosshair;
+    user-select: none;
+    transition: filter 0.08s ease, background-color 0.08s ease;
+}
+
+    .shikaku-cell:not(:empty)::before {
+        content: '';
+        position: absolute;
+        inset: max(2px, calc(var(--cell-size) * 0.12));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: max(2px, calc(var(--cell-size) * 0.08));
+        background: rgba(255, 255, 255, 0.035);
+        pointer-events: none;
+    }
+
+    .shikaku-cell:hover {
+        filter: brightness(1.22) saturate(1.1);
+    }
+
+    .shikaku-cell.rect {
+        border-color: rgba(255, 255, 255, 0.24);
+    }
+
+.current-rect-label {
+    position: absolute;
+    left: calc(var(--rect-x) * var(--cell-size));
+    top: calc(var(--rect-y) * var(--cell-size));
+    width: calc(var(--rect-cols) * var(--cell-size));
+    height: calc(var(--rect-rows) * var(--cell-size));
+    display: grid;
+    place-items: center;
+    z-index: 5;
+    pointer-events: none;
+    color: #111520;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    text-shadow: none;
+}
+
+    .current-rect-label::before {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: max(4px, calc(var(--cell-size) * 0.16));
+        box-shadow: 0 0 0 1px rgba(17, 21, 32, 0.55), 0 10px 26px rgba(0, 0, 0, 0.22), inset 0 0 22px rgba(255, 255, 255, 0.08);
+    }
+
+    .current-rect-label span {
+        min-width: min(82%, max(2.4rem, calc(var(--cell-size) * 2.3)));
+        min-height: min(72%, max(1.7rem, calc(var(--cell-size) * 1.35)));
+        display: inline-grid;
+        place-items: center;
+        padding: 0.18em 0.38em;
+        border-radius: 999px;
+        background: rgba(255, 244, 223, 0.9);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
+        backdrop-filter: blur(4px);
+    }
+
+@supports not (height: 100dvh) {
+    .shikaku-page {
+        min-height: 100vh;
+    }
+
+    .game-shell {
+        --available-height: calc(100vh - (2 * var(--page-gap)));
+    }
+}

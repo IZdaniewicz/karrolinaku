@@ -1,0 +1,34 @@
+﻿@page "/"
+
+<div class="shikaku-page">
+    @if (ShikakuBoard is not null)
+    {
+        <main class="game-shell" style="--cols:@(COLS_NUM); --rows:@(ROWS_NUM)">
+            <section class="board-card" aria-label="Plansza Shikaku">
+                <div class="shikaku-board">
+                    @foreach (var row in ShikakuBoard.Grid)
+                    {
+                        foreach (var cell in row)
+                        {
+                            <div class="shikaku-cell @cell.Class"
+                                 style="background-color: @(cell.Color);"
+                                 @onmouseenter="@(() => HandleHover(cell))"
+                                 @onmouseup="@(() => HandleMouseUp(cell))"
+                                 @onmousedown="@(() => HandleClick(cell))">
+                                @cell.Content
+                            </div>
+                        }
+                    }
+
+                    @if (CurrentRect is not null)
+                    {
+                        <div class="current-rect-label"
+                             style="--rect-x:@(CurrentRect.LeftUpCornerX); --rect-y:@(CurrentRect.LeftUpCornerY); --rect-cols:@(CurrentRect.ColsNumber); --rect-rows:@(CurrentRect.RowsNumber);">
+                            <span>@CurrentRect.RowsNumber:@CurrentRect.ColsNumber</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        </main>
+    }
+</div>
