@@ -28,7 +28,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Publish
-        run: dotnet publish Karolinakku/Karolinakku.csproj -c Release -o release
+        run: dotnet publish Karrolinaku/Karrolinaku.csproj -c Release -o release
 
       - name: Fix GitHub Pages SPA routing
         run: |
