@@ -22,6 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -29,6 +32,12 @@ jobs:
 
       - name: Publish
         run: dotnet publish Karrolinaku/Karrolinaku.csproj -c Release -o release
+
+      - name: Configure GitHub Pages base path
+        shell: bash
+        run: |
+          REPOSITORY_NAME="${GITHUB_REPOSITORY#*/}"
+          sed -i "s|<base href=\"/\" />|<base href=\"/${REPOSITORY_NAME}/\" />|" release/wwwroot/index.html
 
       - name: Fix GitHub Pages SPA routing
         run: |
@@ -43,9 +52,11 @@ jobs:
   deploy:
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
 
     steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
