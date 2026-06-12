@@ -85,7 +85,7 @@ public partial class Home
         }
 
         Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(missing));
-        Board.AcceptedRects.Add(missing.Clone());
+        Board.AcceptedRects.Add(missing.Copy());
         CurrentRect = null;
         StatusMessage = "Dodałem jeden poprawny prostokąt jako delikatną podpowiedź.";
         PaintGrid();
@@ -142,7 +142,7 @@ public partial class Home
         }
 
         Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(CurrentRect));
-        Board.AcceptedRects.Add(CurrentRect.Clone());
+        Board.AcceptedRects.Add(CurrentRect.Copy());
         StatusMessage = "Dobry prostokąt. Kontynuuj w tym tempie.";
 
         if (ValidateBoard().Count == 0)
@@ -290,7 +290,7 @@ public partial class Home
                     random.Next(rect.LeftUpCornerY, rect.RightDownCornerY + 1),
                     rect.Area);
 
-                board.Solution.Add(rect.Clone());
+                board.Solution.Add(rect.Copy());
                 board.Clues.Add(clue);
                 board.Grid[clue.Row][clue.Col].Clue = clue;
             }
@@ -381,6 +381,6 @@ public partial class Home
             RowsNumber == other.RowsNumber &&
             ColsNumber == other.ColsNumber;
 
-        public BoardRect Clone() => this with { };
+        public BoardRect Copy() => this with { };
     }
 }
