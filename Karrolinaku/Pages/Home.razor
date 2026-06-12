@@ -2,97 +2,61 @@
 
 <div class="shikaku-page">
     <main class="game-shell" style="--cols:@Board.ColsNumber; --rows:@Board.RowsNumber">
-        <section class="intro-panel" aria-label="Ustawienia gry">
-            <div>
-                <p class="eyebrow">Karrolinaku</p>
-                <h1>Relaksujące Shikaku</h1>
-                <p class="lead">
-                    Podziel planszę na prostokąty. Każdy prostokąt ma zawierać dokładnie jedną liczbę,
-                    a jego pole musi być równe tej liczbie.
-                </p>
-            </div>
+        <section class="control-bar" aria-label="Ustawienia gry">
+            <label>
+                Rozmiar
+                <select @bind="SelectedBoardSizeKey">
+                    @foreach (var size in BoardSizes)
+                    {
+                        <option value="@size.Key">@size.Label</option>
+                    }
+                </select>
+            </label>
 
-            <div class="controls-grid">
-                <label>
-                    Rozmiar planszy
-                    <select @bind="SelectedBoardSizeKey">
-                        @foreach (var size in BoardSizes)
-                        {
-                            <option value="@size.Key">@size.Label</option>
-                        }
-                    </select>
-                </label>
+            <label>
+                Trudność
+                <select @bind="SelectedDifficultyKey">
+                    @foreach (var difficulty in DifficultyLevels)
+                    {
+                        <option value="@difficulty.Key">@difficulty.Label</option>
+                    }
+                </select>
+            </label>
 
-                <label>
-                    Poziom trudności
-                    <select @bind="SelectedDifficultyKey">
-                        @foreach (var difficulty in DifficultyLevels)
-                        {
-                            <option value="@difficulty.Key">@difficulty.Label</option>
-                        }
-                    </select>
-                </label>
-
-                <button class="primary-action" type="button" @onclick="StartNewGame">Nowa plansza</button>
-            </div>
+            <button class="primary-action" type="button" @onclick="StartNewGame">Nowa</button>
+            <button type="button" @onclick="CheckBoard">Sprawdź</button>
+            <button type="button" @onclick="RevealOneRect">Podpowiedź</button>
+            <button type="button" @onclick="ClearBoard">Wyczyść</button>
         </section>
 
-        <section class="game-area">
-            <aside class="side-panel" aria-label="Informacje o rozgrywce">
-                <div>
-                    <p class="panel-kicker">Tryb</p>
-                    <h2>@CurrentDifficulty.Label</h2>
-                    <p>@CurrentDifficulty.Description</p>
-                </div>
-
-                <div class="stats-grid">
-                    <span><strong>@Board.Clues.Count</strong> liczb</span>
-                    <span><strong>@Board.AcceptedRects.Count</strong> prostokątów</span>
-                    <span><strong>@CompletionPercent%</strong> pokrycia</span>
-                </div>
-
-                <div class="actions-stack">
-                    <button type="button" @onclick="CheckBoard">Sprawdź</button>
-                    <button type="button" @onclick="RevealOneRect">Delikatna podpowiedź</button>
-                    <button type="button" @onclick="ClearBoard">Wyczyść</button>
-                </div>
-
-                <p class="@StatusMessageClass">@StatusMessage</p>
-                <p class="strategy-note">
-                    Najprzyjemniej grać od dużych liczb przy krawędziach. Liczby pierwsze zwykle mają mniej możliwych kształtów,
-                    więc dobrze nadają się jako spokojny punkt startu.
-                </p>
-            </aside>
-
-            <section class="board-card" aria-label="Plansza Shikaku">
-                <div class="shikaku-board">
-                    @foreach (var row in Board.Grid)
+        <section class="board-card" aria-label="Plansza Shikaku">
+            <div class="shikaku-board">
+                @foreach (var row in Board.Grid)
+                {
+                    foreach (var cell in row)
                     {
-                        foreach (var cell in row)
-                        {
-                            <button class="shikaku-cell @cell.CssClass"
-                                    type="button"
-                                    title="@cell.Title"
-                                    @onpointerdown="@(() => HandlePointerDown(cell))"
-                                    @onpointerenter="@(() => HandlePointerEnter(cell))"
-                                    @onpointerup="@(() => HandlePointerUp(cell))">
-                                @if (cell.Clue is not null)
-                                {
-                                    <span class="clue">@cell.Clue.Area</span>
-                                }
-                            </button>
-                        }
+                        <button class="shikaku-cell @cell.CssClass"
+                                type="button"
+                                title="@cell.Title"
+                                @onpointerdown="@(() => HandlePointerDown(cell))"
+                                @onpointerenter="@(() => HandlePointerEnter(cell))"
+                                @onpointerup="@(() => HandlePointerUp(cell))">
+                            @if (cell.Clue is not null)
+                            {
+                                <span class="clue">@cell.Clue.Area</span>
+                            }
+                        </button>
                     }
+                }
 
-                    @if (CurrentRect is not null)
-                    {
-                        <div class="current-rect-label"
-                             style="--rect-x:@CurrentRect.LeftUpCornerY; --rect-y:@CurrentRect.LeftUpCornerX; --rect-cols:@CurrentRect.ColsNumber; --rect-rows:@CurrentRect.RowsNumber;">
-                            <span>@CurrentRect.Area</span>
-                        </div>
-                    }
-                </div>
-            </section>
+                @if (CurrentRect is not null)
+                {
+                    <div class="current-rect-label"
+                         style="--rect-x:@CurrentRect.LeftUpCornerY; --rect-y:@CurrentRect.LeftUpCornerX; --rect-cols:@CurrentRect.ColsNumber; --rect-rows:@CurrentRect.RowsNumber;">
+                        <span>@CurrentRect.RowsNumber×@CurrentRect.ColsNumber</span>
+                    </div>
+                }
+            </div>
         </section>
     </main>
 </div>
