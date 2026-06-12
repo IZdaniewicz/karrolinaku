@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components;
-
 namespace Karrolinaku.Pages;
 
 public partial class Home
@@ -21,12 +19,13 @@ public partial class Home
 
     private string SelectedBoardSizeKey { get; set; } = "medium";
     private string SelectedDifficultyKey { get; set; } = "focus";
-    private ShikakuBoard ShikakuBoard { get; set; } = ShikakuBoard.Generate(8, 8, DifficultyLevels[1]);
+    private PuzzleBoard Board { get; set; } = PuzzleBoard.Generate(8, 8, DifficultyLevels[1]);
     private BoardRect? CurrentRect { get; set; }
     private GridCell? DragStartCell { get; set; }
     private bool IsPointerDown { get; set; }
     private bool IsSolved { get; set; }
     private string StatusMessage { get; set; } = "Zaznacz prostokąt: dokładnie jedna liczba w środku, a pole prostokąta równe tej liczbie.";
+    private string StatusMessageClass => IsSolved ? "status-message success" : "status-message";
 
     private DifficultyOption CurrentDifficulty => DifficultyLevels.First(x => x.Key == SelectedDifficultyKey);
 
@@ -34,15 +33,15 @@ public partial class Home
     {
         get
         {
-            int covered = ShikakuBoard.AcceptedRects.Sum(x => x.Area);
-            return (int)Math.Round(100.0 * covered / ShikakuBoard.Area);
+            int covered = Board.AcceptedRects.Sum(x => x.Area);
+            return (int)Math.Round(100.0 * covered / Board.Area);
         }
     }
 
     private void StartNewGame()
     {
         var size = BoardSizes.First(x => x.Key == SelectedBoardSizeKey);
-        ShikakuBoard = ShikakuBoard.Generate(size.Rows, size.Cols, CurrentDifficulty);
+        Board = PuzzleBoard.Generate(size.Rows, size.Cols, CurrentDifficulty);
         CurrentRect = null;
         DragStartCell = null;
         IsPointerDown = false;
@@ -53,7 +52,7 @@ public partial class Home
 
     private void ClearBoard()
     {
-        ShikakuBoard.AcceptedRects.Clear();
+        Board.AcceptedRects.Clear();
         CurrentRect = null;
         IsSolved = false;
         StatusMessage = "Plansza wyczyszczona. Możesz spokojnie zacząć jeszcze raz.";
@@ -76,8 +75,8 @@ public partial class Home
 
     private void RevealOneRect()
     {
-        var missing = ShikakuBoard.Solution.FirstOrDefault(solution =>
-            !ShikakuBoard.AcceptedRects.Any(accepted => accepted.HasSameGeometry(solution)));
+        var missing = Board.Solution.FirstOrDefault(solution =>
+            !Board.AcceptedRects.Any(accepted => accepted.HasSameGeometry(solution)));
 
         if (missing is null)
         {
@@ -85,8 +84,8 @@ public partial class Home
             return;
         }
 
-        ShikakuBoard.AcceptedRects.RemoveAll(rect => rect.Overlaps(missing));
-        ShikakuBoard.AcceptedRects.Add(missing.Clone());
+        Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(missing));
+        Board.AcceptedRects.Add(missing.Clone());
         CurrentRect = null;
         StatusMessage = "Dodałem jeden poprawny prostokąt jako delikatną podpowiedź.";
         PaintGrid();
@@ -97,7 +96,7 @@ public partial class Home
         IsPointerDown = true;
         DragStartCell = cell;
         CurrentRect = BoardRect.FromCells(cell, cell);
-        ShikakuBoard.AcceptedRects.RemoveAll(rect => rect.Contains(cell.Row, cell.Col));
+        Board.AcceptedRects.RemoveAll(rect => rect.Contains(cell.Row, cell.Col));
         PaintGrid();
     }
 
@@ -128,7 +127,7 @@ public partial class Home
         if (CurrentRect is null)
             return;
 
-        var clues = ShikakuBoard.Clues.Where(CurrentRect.Contains).ToList();
+        var clues = Board.Clues.Where(CurrentRect.Contains).ToList();
 
         if (clues.Count != 1)
         {
@@ -142,8 +141,8 @@ public partial class Home
             return;
         }
 
-        ShikakuBoard.AcceptedRects.RemoveAll(rect => rect.Overlaps(CurrentRect));
-        ShikakuBoard.AcceptedRects.Add(CurrentRect.Clone());
+        Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(CurrentRect));
+        Board.AcceptedRects.Add(CurrentRect.Clone());
         StatusMessage = "Dobry prostokąt. Kontynuuj w tym tempie.";
 
         if (ValidateBoard().Count == 0)
@@ -155,12 +154,12 @@ public partial class Home
 
     private List<string> ValidateBoard()
     {
-        bool[,] covered = new bool[ShikakuBoard.RowsNumber, ShikakuBoard.ColsNumber];
+        bool[,] covered = new bool[Board.RowsNumber, Board.ColsNumber];
         List<string> issues = [];
 
-        foreach (var rect in ShikakuBoard.AcceptedRects)
+        foreach (var rect in Board.AcceptedRects)
         {
-            var clues = ShikakuBoard.Clues.Where(rect.Contains).ToList();
+            var clues = Board.Clues.Where(rect.Contains).ToList();
             if (clues.Count != 1)
                 issues.Add("Każdy prostokąt musi zawierać dokładnie jedną liczbę.");
             else if (clues[0].Area != rect.Area)
@@ -170,6 +169,12 @@ public partial class Home
             {
                 for (int col = rect.LeftUpCornerY; col <= rect.RightDownCornerY; col++)
                 {
+                    if (row < 0 || row >= Board.RowsNumber || col < 0 || col >= Board.ColsNumber)
+                    {
+                        issues.Add("Prostokąt wychodzi poza planszę.");
+                        continue;
+                    }
+
                     if (covered[row, col])
                         issues.Add("Prostokąty nie mogą na siebie nachodzić.");
 
@@ -185,7 +190,7 @@ public partial class Home
                 coveredCount++;
         }
 
-        if (coveredCount != ShikakuBoard.Area)
+        if (coveredCount != Board.Area)
             issues.Add("Cała plansza musi być przykryta prostokątami.");
 
         return issues.Distinct().ToList();
@@ -193,16 +198,16 @@ public partial class Home
 
     private void PaintGrid()
     {
-        foreach (var cell in ShikakuBoard.Grid.SelectMany(x => x))
+        foreach (var cell in Board.Grid.SelectMany(x => x))
         {
             cell.CssClass = string.Empty;
             cell.Title = cell.Clue is null ? "Puste pole" : $"Liczba {cell.Clue.Area}";
         }
 
-        foreach (var rect in ShikakuBoard.AcceptedRects)
+        foreach (var rect in Board.AcceptedRects)
         {
             var isValid = RectIsValid(rect);
-            foreach (var cell in ShikakuBoard.CellsInside(rect))
+            foreach (var cell in Board.CellsInside(rect))
             {
                 cell.CssClass = isValid ? "accepted valid" : "accepted invalid";
             }
@@ -210,7 +215,7 @@ public partial class Home
 
         if (CurrentRect is not null)
         {
-            foreach (var cell in ShikakuBoard.CellsInside(CurrentRect))
+            foreach (var cell in Board.CellsInside(CurrentRect))
             {
                 cell.CssClass = "preview";
             }
@@ -219,15 +224,15 @@ public partial class Home
 
     private bool RectIsValid(BoardRect rect)
     {
-        var clues = ShikakuBoard.Clues.Where(rect.Contains).ToList();
+        var clues = Board.Clues.Where(rect.Contains).ToList();
         return clues.Count == 1 && clues[0].Area == rect.Area;
     }
 
-    private sealed record BoardSizeOption(string Key, string Label, int Rows, int Cols);
+    public sealed record BoardSizeOption(string Key, string Label, int Rows, int Cols);
 
-    private sealed record DifficultyOption(string Key, string Label, string Description, int TargetArea, double SplitChance, int MinArea);
+    public sealed record DifficultyOption(string Key, string Label, string Description, int TargetArea, double SplitChance, int MinArea);
 
-    private sealed class ShikakuBoard
+    public sealed class PuzzleBoard
     {
         public int RowsNumber { get; }
         public int ColsNumber { get; }
@@ -237,7 +242,7 @@ public partial class Home
         public List<BoardRect> Solution { get; } = [];
         public List<BoardRect> AcceptedRects { get; } = [];
 
-        private ShikakuBoard(int rowsNumber, int colsNumber)
+        private PuzzleBoard(int rowsNumber, int colsNumber)
         {
             RowsNumber = rowsNumber;
             ColsNumber = colsNumber;
@@ -253,9 +258,9 @@ public partial class Home
             }
         }
 
-        public static ShikakuBoard Generate(int rowsNumber, int colsNumber, DifficultyOption difficulty)
+        public static PuzzleBoard Generate(int rowsNumber, int colsNumber, DifficultyOption difficulty)
         {
-            ShikakuBoard board = new(rowsNumber, colsNumber);
+            PuzzleBoard board = new(rowsNumber, colsNumber);
             Random random = Random.Shared;
             List<BoardRect> rects = [new BoardRect(0, 0, rowsNumber, colsNumber)];
 
@@ -314,13 +319,11 @@ public partial class Home
                 var second = new BoardRect(rect.LeftUpCornerX + cut, rect.LeftUpCornerY, rect.RowsNumber - cut, rect.ColsNumber);
                 return first.Area >= difficulty.MinArea && second.Area >= difficulty.MinArea ? (first, second) : null;
             }
-            else
-            {
-                int cut = random.Next(1, rect.ColsNumber);
-                var first = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY, rect.RowsNumber, cut);
-                var second = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY + cut, rect.RowsNumber, rect.ColsNumber - cut);
-                return first.Area >= difficulty.MinArea && second.Area >= difficulty.MinArea ? (first, second) : null;
-            }
+
+            int columnCut = random.Next(1, rect.ColsNumber);
+            var left = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY, rect.RowsNumber, columnCut);
+            var right = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY + columnCut, rect.RowsNumber, rect.ColsNumber - columnCut);
+            return left.Area >= difficulty.MinArea && right.Area >= difficulty.MinArea ? (left, right) : null;
         }
 
         public IEnumerable<GridCell> CellsInside(BoardRect rect)
@@ -336,7 +339,7 @@ public partial class Home
         }
     }
 
-    private sealed class GridCell(int row, int col)
+    public sealed class GridCell(int row, int col)
     {
         public int Row { get; } = row;
         public int Col { get; } = col;
@@ -345,9 +348,9 @@ public partial class Home
         public string Title { get; set; } = "Puste pole";
     }
 
-    private sealed record Clue(int Row, int Col, int Area);
+    public sealed record Clue(int Row, int Col, int Area);
 
-    private sealed record BoardRect(int LeftUpCornerX, int LeftUpCornerY, int RowsNumber, int ColsNumber)
+    public sealed record BoardRect(int LeftUpCornerX, int LeftUpCornerY, int RowsNumber, int ColsNumber)
     {
         public int RightDownCornerX => LeftUpCornerX + RowsNumber - 1;
         public int RightDownCornerY => LeftUpCornerY + ColsNumber - 1;
