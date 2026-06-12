@@ -1,7 +1,7 @@
 @page "/"
 
 <div class="shikaku-page">
-    <main class="game-shell" style="--cols:@ShikakuBoard.ColsNumber; --rows:@ShikakuBoard.RowsNumber">
+    <main class="game-shell" style="--cols:@Board.ColsNumber; --rows:@Board.RowsNumber">
         <section class="intro-panel" aria-label="Ustawienia gry">
             <div>
                 <p class="eyebrow">Karrolinaku</p>
@@ -46,8 +46,8 @@
                 </div>
 
                 <div class="stats-grid">
-                    <span><strong>@ShikakuBoard.Clues.Count</strong> liczb</span>
-                    <span><strong>@ShikakuBoard.AcceptedRects.Count</strong> prostokątów</span>
+                    <span><strong>@Board.Clues.Count</strong> liczb</span>
+                    <span><strong>@Board.AcceptedRects.Count</strong> prostokątów</span>
                     <span><strong>@CompletionPercent%</strong> pokrycia</span>
                 </div>
 
@@ -57,7 +57,7 @@
                     <button type="button" @onclick="ClearBoard">Wyczyść</button>
                 </div>
 
-                <p class='status-message @(IsSolved ? "success" : string.Empty)'>@StatusMessage</p>
+                <p class="@StatusMessageClass">@StatusMessage</p>
                 <p class="strategy-note">
                     Najprzyjemniej grać od dużych liczb przy krawędziach. Liczby pierwsze zwykle mają mniej możliwych kształtów,
                     więc dobrze nadają się jako spokojny punkt startu.
@@ -66,7 +66,7 @@
 
             <section class="board-card" aria-label="Plansza Shikaku">
                 <div class="shikaku-board">
-                    @foreach (var row in ShikakuBoard.Grid)
+                    @foreach (var row in Board.Grid)
                     {
                         foreach (var cell in row)
                         {
