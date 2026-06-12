@@ -4,65 +4,37 @@
 
 .shikaku-page {
     min-height: 100dvh;
-    padding: clamp(0.75rem, 2vw, 1.5rem);
+    padding: clamp(0.6rem, 1.5vw, 1rem);
     color: #302922;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .game-shell {
-    width: min(1180px, 100%);
+    width: min(1320px, 100%);
     margin: 0 auto;
+    display: grid;
+    gap: 0.75rem;
 }
 
-.intro-panel {
+.control-bar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 390px);
-    gap: clamp(1rem, 2.6vw, 2rem);
-    align-items: stretch;
-    margin-bottom: 1rem;
-    padding: clamp(1rem, 2.2vw, 1.65rem);
+    grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) repeat(4, minmax(92px, auto));
+    gap: 0.65rem;
+    align-items: end;
+    padding: 0.75rem;
     border: 1px solid rgba(93, 76, 56, 0.14);
-    border-radius: 28px;
+    border-radius: 22px;
     background: rgba(255, 252, 247, 0.72);
-    box-shadow: 0 24px 70px rgba(75, 60, 42, 0.12);
+    box-shadow: 0 18px 45px rgba(75, 60, 42, 0.10);
     backdrop-filter: blur(18px);
-}
-
-.eyebrow {
-    margin: 0 0 0.6rem;
-    color: #7a6959;
-    font-size: 0.78rem;
-    font-weight: 850;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-h1 {
-    margin: 0;
-    font-size: clamp(2.2rem, 6vw, 4.8rem);
-    line-height: 0.95;
-    letter-spacing: -0.07em;
-}
-
-.lead {
-    max-width: 720px;
-    margin: 1rem 0 0;
-    color: #6a5e54;
-    line-height: 1.6;
-    font-size: clamp(1rem, 2vw, 1.15rem);
-}
-
-.controls-grid {
-    display: grid;
-    gap: 0.85rem;
-    align-content: center;
 }
 
 label {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.35rem;
     color: #61554b;
     font-weight: 800;
+    font-size: 0.86rem;
 }
 
 select, button {
@@ -71,17 +43,34 @@ select, button {
 
 select {
     width: 100%;
-    min-height: 44px;
-    padding: 0.7rem 0.85rem;
+    min-height: 42px;
+    padding: 0.62rem 0.75rem;
     border: 1px solid rgba(93, 76, 56, 0.16);
-    border-radius: 16px;
+    border-radius: 14px;
     background: #fffaf3;
     color: #302922;
 }
 
 button {
+    min-height: 42px;
     border: 0;
+    border-radius: 14px;
+    background: #74624b;
+    color: #fffdf9;
     cursor: pointer;
+    font-weight: 900;
+    padding: 0.62rem 0.8rem;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.primary-action {
+    background: #2f4f3c;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    background: #263f31;
+    box-shadow: 0 12px 24px rgba(47, 79, 60, 0.14);
 }
 
 select:focus-visible, button:focus-visible {
@@ -89,125 +78,18 @@ select:focus-visible, button:focus-visible {
     outline-offset: 3px;
 }
 
-.primary-action, .actions-stack button {
-    min-height: 44px;
-    border-radius: 16px;
-    background: #2f4f3c;
-    color: #fffdf9;
-    font-weight: 900;
-    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
-}
-
-.primary-action:hover, .actions-stack button:hover {
-    transform: translateY(-1px);
-    background: #263f31;
-    box-shadow: 0 14px 26px rgba(47, 79, 60, 0.16);
-}
-
-.game-area {
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-    gap: 1rem;
-    align-items: start;
-}
-
-.side-panel, .board-card {
+.board-card {
+    min-width: 0;
+    overflow: auto;
+    padding: clamp(0.7rem, 1.5vw, 1rem);
     border: 1px solid rgba(93, 76, 56, 0.13);
     border-radius: 28px;
     background: rgba(255, 252, 247, 0.68);
     box-shadow: 0 24px 70px rgba(75, 60, 42, 0.11);
 }
 
-.side-panel {
-    position: sticky;
-    top: 1rem;
-    padding: 1.15rem;
-}
-
-.panel-kicker {
-    margin: 0 0 0.25rem;
-    color: #7a6959;
-    font-size: 0.76rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-
-.side-panel h2 {
-    margin: 0;
-    font-size: 1.45rem;
-}
-
-.side-panel p {
-    color: #6a5e54;
-    line-height: 1.55;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.55rem;
-    margin: 1rem 0;
-}
-
-.stats-grid span {
-    min-width: 0;
-    padding: 0.75rem 0.55rem;
-    border-radius: 18px;
-    background: #f5eee6;
-    color: #72665b;
-    text-align: center;
-    font-size: 0.82rem;
-}
-
-.stats-grid strong {
-    display: block;
-    color: #302922;
-    font-size: 1.25rem;
-}
-
-.actions-stack {
-    display: grid;
-    gap: 0.6rem;
-}
-
-.actions-stack button:nth-child(2) {
-    background: #74624b;
-}
-
-.actions-stack button:nth-child(3) {
-    background: #8b665c;
-}
-
-.status-message {
-    min-height: 74px;
-    margin: 1rem 0;
-    padding: 0.9rem;
-    border-radius: 18px;
-    background: #fff6eb;
-    color: #4d4036;
-    font-weight: 850;
-}
-
-.status-message.success {
-    background: #e8f3e3;
-    color: #2f4f3c;
-}
-
-.strategy-note {
-    margin-bottom: 0;
-    padding-left: 0.8rem;
-    border-left: 4px solid #91ad87;
-}
-
-.board-card {
-    min-width: 0;
-    overflow: auto;
-    padding: clamp(0.7rem, 1.5vw, 1rem);
-}
-
 .shikaku-board {
-    --cell-size: max(18px, min(calc((100vw - 390px) / var(--cols)), calc((100dvh - 240px) / var(--rows)), 58px));
+    --cell-size: max(18px, min(calc((100vw - 48px) / var(--cols)), calc((100dvh - 150px) / var(--rows)), 58px));
     position: relative;
     display: grid;
     grid-template-columns: repeat(var(--cols), var(--cell-size));
@@ -305,12 +187,8 @@ select:focus-visible, button:focus-visible {
 }
 
 @media (max-width: 920px) {
-    .intro-panel, .game-area {
-        grid-template-columns: 1fr;
-    }
-
-    .side-panel {
-        position: static;
+    .control-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .shikaku-board {
@@ -323,11 +201,7 @@ select:focus-visible, button:focus-visible {
         padding: 0.55rem;
     }
 
-    .intro-panel, .side-panel, .board-card {
-        border-radius: 22px;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
+    .control-bar, .board-card {
+        border-radius: 20px;
     }
 }
