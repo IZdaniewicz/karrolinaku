@@ -1,96 +1,278 @@
-﻿
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
 .shikaku-page {
-    --page-gap: clamp(0.5rem, 1.6vw, 1.5rem);
-    --board-frame: clamp(2px, 0.45vmin, 6px);
-    --board-border: 1px;
     min-height: 100dvh;
-    width: 100%;
-    display: grid;
-    place-items: center;
-    padding: var(--page-gap);
-    color: #e8dcc8;
-    font-family: monospace;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    color: #302922;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .game-shell {
-    --available-width: calc(100vw - (2 * var(--page-gap)));
-    --available-height: calc(100dvh - (2 * var(--page-gap)));
-    --board-chrome: calc((2 * var(--board-frame)) + (2 * var(--board-border)));
-    --cell-size: min( calc((var(--available-width) - var(--board-chrome)) / var(--cols)), calc((var(--available-height) - var(--board-chrome)) / var(--rows)) );
-    width: var(--available-width);
-    height: var(--available-height);
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+.intro-panel {
     display: grid;
-    place-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 390px);
+    gap: clamp(1rem, 2.6vw, 2rem);
+    align-items: stretch;
+    margin-bottom: 1rem;
+    padding: clamp(1rem, 2.2vw, 1.65rem);
+    border: 1px solid rgba(93, 76, 56, 0.14);
+    border-radius: 28px;
+    background: rgba(255, 252, 247, 0.72);
+    box-shadow: 0 24px 70px rgba(75, 60, 42, 0.12);
+    backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+    margin: 0 0 0.6rem;
+    color: #7a6959;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 6vw, 4.8rem);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+}
+
+.lead {
+    max-width: 720px;
+    margin: 1rem 0 0;
+    color: #6a5e54;
+    line-height: 1.6;
+    font-size: clamp(1rem, 2vw, 1.15rem);
+}
+
+.controls-grid {
+    display: grid;
+    gap: 0.85rem;
+    align-content: center;
+}
+
+label {
+    display: grid;
+    gap: 0.45rem;
+    color: #61554b;
+    font-weight: 800;
+}
+
+select, button {
+    font: inherit;
+}
+
+select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(93, 76, 56, 0.16);
+    border-radius: 16px;
+    background: #fffaf3;
+    color: #302922;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+select:focus-visible, button:focus-visible {
+    outline: 3px solid rgba(91, 134, 81, 0.35);
+    outline-offset: 3px;
+}
+
+.primary-action, .actions-stack button {
+    min-height: 44px;
+    border-radius: 16px;
+    background: #2f4f3c;
+    color: #fffdf9;
+    font-weight: 900;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.primary-action:hover, .actions-stack button:hover {
+    transform: translateY(-1px);
+    background: #263f31;
+    box-shadow: 0 14px 26px rgba(47, 79, 60, 0.16);
+}
+
+.game-area {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.side-panel, .board-card {
+    border: 1px solid rgba(93, 76, 56, 0.13);
+    border-radius: 28px;
+    background: rgba(255, 252, 247, 0.68);
+    box-shadow: 0 24px 70px rgba(75, 60, 42, 0.11);
+}
+
+.side-panel {
+    position: sticky;
+    top: 1rem;
+    padding: 1.15rem;
+}
+
+.panel-kicker {
+    margin: 0 0 0.25rem;
+    color: #7a6959;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.side-panel h2 {
+    margin: 0;
+    font-size: 1.45rem;
+}
+
+.side-panel p {
+    color: #6a5e54;
+    line-height: 1.55;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+    margin: 1rem 0;
+}
+
+.stats-grid span {
+    min-width: 0;
+    padding: 0.75rem 0.55rem;
+    border-radius: 18px;
+    background: #f5eee6;
+    color: #72665b;
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.stats-grid strong {
+    display: block;
+    color: #302922;
+    font-size: 1.25rem;
+}
+
+.actions-stack {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.actions-stack button:nth-child(2) {
+    background: #74624b;
+}
+
+.actions-stack button:nth-child(3) {
+    background: #8b665c;
+}
+
+.status-message {
+    min-height: 74px;
+    margin: 1rem 0;
+    padding: 0.9rem;
+    border-radius: 18px;
+    background: #fff6eb;
+    color: #4d4036;
+    font-weight: 850;
+}
+
+.status-message.success {
+    background: #e8f3e3;
+    color: #2f4f3c;
+}
+
+.strategy-note {
+    margin-bottom: 0;
+    padding-left: 0.8rem;
+    border-left: 4px solid #91ad87;
 }
 
 .board-card {
-    box-sizing: content-box;
-    width: calc(var(--cell-size) * var(--cols));
-    height: calc(var(--cell-size) * var(--rows));
-    max-width: calc(100% - var(--board-chrome));
-    max-height: calc(100% - var(--board-chrome));
-    padding: var(--board-frame);
-    border: var(--board-border) solid rgba(142, 157, 198, 0.28);
-    border-radius: clamp(8px, 1.2vmin, 16px);
-    background: linear-gradient(145deg, rgba(19, 24, 36, 0.96), rgba(9, 12, 19, 0.98));
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.035) inset, 0 22px 70px rgba(0, 0, 0, 0.62);
+    min-width: 0;
+    overflow: auto;
+    padding: clamp(0.7rem, 1.5vw, 1rem);
 }
 
 .shikaku-board {
+    --cell-size: min(calc((100vw - 390px) / var(--cols)), calc((100dvh - 240px) / var(--rows)), 58px);
     position: relative;
     display: grid;
     grid-template-columns: repeat(var(--cols), var(--cell-size));
     grid-template-rows: repeat(var(--rows), var(--cell-size));
     width: calc(var(--cell-size) * var(--cols));
     height: calc(var(--cell-size) * var(--rows));
+    min-width: calc(30px * var(--cols));
+    min-height: calc(30px * var(--rows));
+    margin: 0 auto;
     overflow: hidden;
-    border-radius: clamp(6px, 0.9vmin, 12px);
-    background: #141820;
+    border: 3px solid #4f4033;
+    border-radius: 22px;
+    background: #4f4033;
     touch-action: none;
+    user-select: none;
 }
 
 .shikaku-cell {
-    width: var(--cell-size);
-    height: var(--cell-size);
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
     min-width: 0;
     min-height: 0;
-    border: 1px solid rgba(122, 137, 176, 0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    color: #fff4df;
-    font-family: 'Space Mono', monospace;
-    font-size: clamp(0.48rem, calc(var(--cell-size) * 0.42), 1.2rem);
-    font-weight: 700;
-    line-height: 1;
-    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.75);
-    cursor: crosshair;
-    user-select: none;
-    transition: filter 0.08s ease, background-color 0.08s ease;
+    border-right: 1px solid rgba(79, 64, 51, 0.44);
+    border-bottom: 1px solid rgba(79, 64, 51, 0.44);
+    background: #fffaf2;
+    color: #302922;
+    transition: background-color 80ms linear, box-shadow 80ms linear;
 }
 
-    .shikaku-cell:not(:empty)::before {
-        content: '';
-        position: absolute;
-        inset: max(2px, calc(var(--cell-size) * 0.12));
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: max(2px, calc(var(--cell-size) * 0.08));
-        background: rgba(255, 255, 255, 0.035);
-        pointer-events: none;
-    }
+.shikaku-cell:hover {
+    background: #f7f0e6;
+}
 
-    .shikaku-cell:hover {
-        filter: brightness(1.22) saturate(1.1);
-    }
+.shikaku-cell.preview {
+    background: #dcebd6;
+    box-shadow: inset 0 0 0 2px rgba(47, 79, 60, 0.34);
+}
 
-    .shikaku-cell.rect {
-        border-color: rgba(255, 255, 255, 0.24);
-    }
+.shikaku-cell.accepted.valid {
+    background: #e5f1df;
+    box-shadow: inset 0 0 0 2px rgba(91, 134, 81, 0.22);
+}
+
+.shikaku-cell.accepted.invalid {
+    background: #f5ded5;
+    box-shadow: inset 0 0 0 2px rgba(139, 82, 64, 0.28);
+}
+
+.clue {
+    display: grid;
+    place-items: center;
+    width: clamp(1.45rem, 68%, 2.75rem);
+    aspect-ratio: 1;
+    border: 2px solid rgba(47, 79, 60, 0.36);
+    border-radius: 999px;
+    background: #fffdf8;
+    box-shadow: 0 6px 18px rgba(79, 64, 51, 0.13);
+    color: #302922;
+    font-size: clamp(0.72rem, calc(var(--cell-size) * 0.34), 1.12rem);
+    font-weight: 950;
+    pointer-events: none;
+}
 
 .current-rect-label {
     position: absolute;
@@ -100,43 +282,54 @@
     height: calc(var(--rect-rows) * var(--cell-size));
     display: grid;
     place-items: center;
-    z-index: 5;
     pointer-events: none;
-    color: #111520;
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1;
-    text-align: center;
-    text-shadow: none;
+    z-index: 5;
 }
 
-    .current-rect-label::before {
-        content: '';
-        position: absolute;
-        inset: 2px;
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-radius: max(4px, calc(var(--cell-size) * 0.16));
-        box-shadow: 0 0 0 1px rgba(17, 21, 32, 0.55), 0 10px 26px rgba(0, 0, 0, 0.22), inset 0 0 22px rgba(255, 255, 255, 0.08);
+.current-rect-label::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 2px solid rgba(47, 79, 60, 0.7);
+    border-radius: max(5px, calc(var(--cell-size) * 0.12));
+    box-shadow: 0 10px 26px rgba(47, 79, 60, 0.18), inset 0 0 18px rgba(255, 255, 255, 0.16);
+}
+
+.current-rect-label span {
+    z-index: 1;
+    min-width: 2.2rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.93);
+    color: #302922;
+    box-shadow: 0 8px 18px rgba(79, 64, 51, 0.16);
+    font-weight: 950;
+}
+
+@media (max-width: 920px) {
+    .intro-panel, .game-area {
+        grid-template-columns: 1fr;
     }
 
-    .current-rect-label span {
-        min-width: min(82%, max(2.4rem, calc(var(--cell-size) * 2.3)));
-        min-height: min(72%, max(1.7rem, calc(var(--cell-size) * 1.35)));
-        display: inline-grid;
-        place-items: center;
-        padding: 0.18em 0.38em;
-        border-radius: 999px;
-        background: rgba(255, 244, 223, 0.9);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
-        backdrop-filter: blur(4px);
+    .side-panel {
+        position: static;
     }
 
-@supports not (height: 100dvh) {
+    .shikaku-board {
+        --cell-size: min(calc((100vw - 42px) / var(--cols)), 54px);
+    }
+}
+
+@media (max-width: 560px) {
     .shikaku-page {
-        min-height: 100vh;
+        padding: 0.55rem;
     }
 
-    .game-shell {
-        --available-height: calc(100vh - (2 * var(--page-gap)));
+    .intro-panel, .side-panel, .board-card {
+        border-radius: 22px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
