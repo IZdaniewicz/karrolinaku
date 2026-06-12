@@ -207,15 +207,13 @@ select:focus-visible, button:focus-visible {
 }
 
 .shikaku-board {
-    --cell-size: min(calc((100vw - 390px) / var(--cols)), calc((100dvh - 240px) / var(--rows)), 58px);
+    --cell-size: max(18px, min(calc((100vw - 390px) / var(--cols)), calc((100dvh - 240px) / var(--rows)), 58px));
     position: relative;
     display: grid;
     grid-template-columns: repeat(var(--cols), var(--cell-size));
     grid-template-rows: repeat(var(--rows), var(--cell-size));
     width: calc(var(--cell-size) * var(--cols));
     height: calc(var(--cell-size) * var(--rows));
-    min-width: calc(30px * var(--cols));
-    min-height: calc(30px * var(--rows));
     margin: 0 auto;
     overflow: hidden;
     border: 3px solid #4f4033;
@@ -262,14 +260,14 @@ select:focus-visible, button:focus-visible {
 .clue {
     display: grid;
     place-items: center;
-    width: clamp(1.45rem, 68%, 2.75rem);
+    width: clamp(1.05rem, 68%, 2.75rem);
     aspect-ratio: 1;
     border: 2px solid rgba(47, 79, 60, 0.36);
     border-radius: 999px;
     background: #fffdf8;
     box-shadow: 0 6px 18px rgba(79, 64, 51, 0.13);
     color: #302922;
-    font-size: clamp(0.72rem, calc(var(--cell-size) * 0.34), 1.12rem);
+    font-size: clamp(0.58rem, calc(var(--cell-size) * 0.34), 1.12rem);
     font-weight: 950;
     pointer-events: none;
 }
@@ -316,7 +314,7 @@ select:focus-visible, button:focus-visible {
     }
 
     .shikaku-board {
-        --cell-size: min(calc((100vw - 42px) / var(--cols)), 54px);
+        --cell-size: max(18px, min(calc((100vw - 42px) / var(--cols)), 54px));
     }
 }
 
