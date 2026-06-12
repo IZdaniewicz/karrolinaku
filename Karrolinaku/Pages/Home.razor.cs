@@ -7,7 +7,11 @@ public partial class Home
         new("small", "Mała 6 × 6", 6, 6),
         new("medium", "Średnia 8 × 8", 8, 8),
         new("large", "Duża 10 × 10", 10, 10),
-        new("wide", "Szeroka 10 × 14", 10, 14)
+        new("wide", "Szeroka 10 × 14", 10, 14),
+        new("bigger", "Większa 14 × 14", 14, 14),
+        new("roomy", "Przestrzenna 20 × 20", 20, 20),
+        new("huge", "Ogromna 30 × 30", 30, 30),
+        new("giant", "Gigantyczna 40 × 40", 40, 40)
     ];
 
     private static readonly DifficultyOption[] DifficultyLevels =
@@ -46,7 +50,7 @@ public partial class Home
         DragStartCell = null;
         IsPointerDown = false;
         IsSolved = false;
-        StatusMessage = "Nowa plansza gotowa. Zacznij od liczb przy krawędziach albo od największych wartości.";
+        StatusMessage = "Nowa plansza gotowa. Na dużych planszach zacznij od spokojnego wydzielania największych obszarów.";
         PaintGrid();
     }
 
@@ -262,25 +266,41 @@ public partial class Home
         {
             PuzzleBoard board = new(rowsNumber, colsNumber);
             Random random = Random.Shared;
+            int targetArea = GetEffectiveTargetArea(board.Area, difficulty);
+            int minArea = Math.Max(difficulty.MinArea, targetArea / 3);
+            int maxRegions = Math.Max(1, (int)Math.Ceiling(board.Area / (double)targetArea));
+            int maxIterations = Math.Min(2500, Math.Max(800, maxRegions * 12));
             List<BoardRect> rects = [new BoardRect(0, 0, rowsNumber, colsNumber)];
 
-            for (int guard = 0; guard < 600; guard++)
+            for (int guard = 0; guard < maxIterations; guard++)
             {
-                var candidate = rects
-                    .Where(rect => rect.Area > difficulty.TargetArea || random.NextDouble() < difficulty.SplitChance)
-                    .OrderByDescending(rect => rect.Area + random.NextDouble() * difficulty.TargetArea)
-                    .FirstOrDefault();
-
-                if (candidate is null || rects.Count >= Math.Ceiling(board.Area / (double)difficulty.MinArea))
+                if (rects.Count >= maxRegions)
                     break;
 
-                var split = Split(candidate, random, difficulty);
-                if (split is null)
+                var candidates = rects
+                    .Where(rect => rect.Area >= minArea * 2 && (rect.Area > targetArea || random.NextDouble() < difficulty.SplitChance))
+                    .OrderByDescending(rect => rect.Area + random.NextDouble() * targetArea)
+                    .ToList();
+
+                if (candidates.Count == 0)
                     break;
 
-                rects.Remove(candidate);
-                rects.Add(split.Value.First);
-                rects.Add(split.Value.Second);
+                bool splitDone = false;
+                foreach (var candidate in candidates)
+                {
+                    var split = Split(candidate, random, minArea);
+                    if (split is null)
+                        continue;
+
+                    rects.Remove(candidate);
+                    rects.Add(split.Value.First);
+                    rects.Add(split.Value.Second);
+                    splitDone = true;
+                    break;
+                }
+
+                if (!splitDone)
+                    break;
             }
 
             foreach (var rect in rects.OrderBy(x => x.LeftUpCornerX).ThenBy(x => x.LeftUpCornerY))
@@ -298,32 +318,52 @@ public partial class Home
             return board;
         }
 
-        private static (BoardRect First, BoardRect Second)? Split(BoardRect rect, Random random, DifficultyOption difficulty)
+        private static int GetEffectiveTargetArea(int boardArea, DifficultyOption difficulty)
         {
-            bool canHorizontal = rect.RowsNumber >= 2;
-            bool canVertical = rect.ColsNumber >= 2;
+            double scale = Math.Sqrt(boardArea / 64.0);
+            return Math.Clamp((int)Math.Round(difficulty.TargetArea * scale), difficulty.TargetArea, 48);
+        }
 
-            if (!canHorizontal && !canVertical)
-                return null;
+        private static (BoardRect First, BoardRect Second)? Split(BoardRect rect, Random random, int minArea)
+        {
+            List<(BoardRect First, BoardRect Second)> candidates = [];
 
-            bool horizontal = rect.RowsNumber > rect.ColsNumber || (rect.RowsNumber == rect.ColsNumber && random.NextDouble() > 0.5);
-            if (horizontal && !canHorizontal)
-                horizontal = false;
-            if (!horizontal && !canVertical)
-                horizontal = true;
-
-            if (horizontal)
+            for (int cut = 1; cut < rect.RowsNumber; cut++)
             {
-                int cut = random.Next(1, rect.RowsNumber);
                 var first = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY, cut, rect.ColsNumber);
                 var second = new BoardRect(rect.LeftUpCornerX + cut, rect.LeftUpCornerY, rect.RowsNumber - cut, rect.ColsNumber);
-                return first.Area >= difficulty.MinArea && second.Area >= difficulty.MinArea ? (first, second) : null;
+                if (first.Area >= minArea && second.Area >= minArea)
+                    candidates.Add((first, second));
             }
 
-            int columnCut = random.Next(1, rect.ColsNumber);
-            var left = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY, rect.RowsNumber, columnCut);
-            var right = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY + columnCut, rect.RowsNumber, rect.ColsNumber - columnCut);
-            return left.Area >= difficulty.MinArea && right.Area >= difficulty.MinArea ? (left, right) : null;
+            for (int cut = 1; cut < rect.ColsNumber; cut++)
+            {
+                var first = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY, rect.RowsNumber, cut);
+                var second = new BoardRect(rect.LeftUpCornerX, rect.LeftUpCornerY + cut, rect.RowsNumber, rect.ColsNumber - cut);
+                if (first.Area >= minArea && second.Area >= minArea)
+                    candidates.Add((first, second));
+            }
+
+            if (candidates.Count == 0)
+                return null;
+
+            return candidates
+                .OrderByDescending(candidate => SplitScore(candidate.First, candidate.Second, random))
+                .First();
+        }
+
+        private static double SplitScore(BoardRect first, BoardRect second, Random random)
+        {
+            double balance = Math.Min(first.Area, second.Area) / (double)Math.Max(first.Area, second.Area);
+            double shape = (ShapeScore(first) + ShapeScore(second)) / 2.0;
+            return 0.65 * balance + 0.35 * shape + random.NextDouble() * 0.12;
+        }
+
+        private static double ShapeScore(BoardRect rect)
+        {
+            int longer = Math.Max(rect.RowsNumber, rect.ColsNumber);
+            int shorter = Math.Min(rect.RowsNumber, rect.ColsNumber);
+            return shorter / (double)longer;
         }
 
         public IEnumerable<GridCell> CellsInside(BoardRect rect)
