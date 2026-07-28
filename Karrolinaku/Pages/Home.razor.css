@@ -78,6 +78,10 @@ select:focus-visible, button:focus-visible {
     outline-offset: 3px;
 }
 
+.mobile-play-help {
+    display: none;
+}
+
 .board-card {
     min-width: 0;
     overflow: auto;
@@ -86,6 +90,8 @@ select:focus-visible, button:focus-visible {
     border-radius: 0;
     background: rgba(255, 252, 247, 0.68);
     box-shadow: 0 18px 50px rgba(75, 60, 42, 0.10);
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
 }
 
 .shikaku-board {
@@ -185,6 +191,12 @@ select:focus-visible, button:focus-visible {
 .shikaku-cell.accepted.invalid:hover {
     background: #f1d2c8;
     box-shadow: inset 0 0 0 1px rgba(139, 82, 64, 0.5);
+}
+
+.shikaku-cell.selection-anchor,
+.shikaku-cell.selection-anchor:hover {
+    z-index: 2;
+    box-shadow: inset 0 0 0 3px #211a14, inset 0 0 0 5px rgba(255, 255, 255, 0.8);
 }
 
 .clue {
@@ -289,20 +301,126 @@ select:focus-visible, button:focus-visible {
     }
 
     .shikaku-board {
-        --cell-size: max(22px, min(calc((100vw - 42px) / var(--cols)), 54px));
+        --cell-size: max(24px, min(calc((100vw - 42px) / var(--cols)), 54px));
     }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 700px) {
     .shikaku-page {
-        padding: 0.55rem;
+        padding: 0.4rem;
+    }
+
+    .game-shell {
+        gap: 0.5rem;
     }
 
     .control-bar {
-        border-radius: 16px;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.45rem;
+        padding: 0.55rem;
+        border-radius: 14px;
+    }
+
+    .control-bar label {
+        grid-column: span 3;
+        min-width: 0;
+        font-size: 0.78rem;
+    }
+
+    .control-bar button {
+        grid-column: span 2;
+        min-width: 0;
+        min-height: 48px;
+        padding: 0.55rem 0.3rem;
+        font-size: clamp(0.72rem, 3.2vw, 0.88rem);
+        white-space: nowrap;
+    }
+
+    select {
+        min-height: 48px;
+        padding: 0.55rem 0.5rem;
+        font-size: 0.88rem;
+    }
+
+    .mobile-play-help {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.55rem;
+        align-items: center;
+        min-height: 48px;
+        padding: 0.55rem 0.65rem;
+        border: 1px solid rgba(49, 91, 157, 0.18);
+        border-radius: 12px;
+        background: rgba(229, 239, 255, 0.92);
+        color: #26364d;
+        box-shadow: 0 8px 22px rgba(49, 91, 157, 0.10);
+        font-size: 0.82rem;
+        font-weight: 750;
+        line-height: 1.25;
+    }
+
+    .mobile-help-icon {
+        font-size: 1.15rem;
+    }
+
+    .cancel-selection {
+        min-height: 38px;
+        padding: 0.4rem 0.55rem;
+        border: 1px solid rgba(49, 91, 157, 0.24);
+        background: #fffaf3;
+        color: #37465a;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .cancel-selection:hover {
+        transform: none;
+        background: #fff;
+        box-shadow: none;
     }
 
     .board-card {
-        border-radius: 0;
+        max-width: 100%;
+        padding: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .shikaku-board {
+        --cell-size: max(30px, min(calc((100vw - 18px) / var(--cols)), 48px));
+        margin: 0;
+        touch-action: pan-x pan-y;
+    }
+
+    .clue {
+        font-size: clamp(0.72rem, calc(var(--cell-size) * 0.44), 1.05rem);
+    }
+
+    .current-rect-label span {
+        min-width: 1.7rem;
+        padding: 0.12rem 0.3rem;
+        font-size: 0.72rem;
+    }
+
+    .win-card {
+        max-height: calc(100dvh - 1rem);
+        overflow: auto;
+        padding: 1rem;
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 380px) {
+    .control-bar {
+        gap: 0.35rem;
+        padding: 0.45rem;
+    }
+
+    .mobile-play-help {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .cancel-selection {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 }

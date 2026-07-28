@@ -28,8 +28,17 @@
             <button type="button" @onclick="ClearBoard">Wyczyść</button>
         </section>
 
+        <section class="mobile-play-help" aria-live="polite">
+            <span class="mobile-help-icon" aria-hidden="true">☝️</span>
+            <span>@MobileSelectionMessage</span>
+            @if (TapStartCell is not null)
+            {
+                <button class="cancel-selection" type="button" @onclick="CancelTapSelection">Anuluj wybór</button>
+            }
+        </section>
+
         <section class="board-card" aria-label="Plansza Shikaku">
-            <div class="shikaku-board">
+            <div class="shikaku-board" @onpointerleave="HandleBoardPointerLeave">
                 @foreach (var row in Board.Grid)
                 {
                     foreach (var cell in row)
@@ -37,9 +46,11 @@
                         <button class="shikaku-cell @cell.CssClass"
                                 type="button"
                                 title="@cell.Title"
-                                @onpointerdown="@(() => HandlePointerDown(cell))"
-                                @onpointerenter="@(() => HandlePointerEnter(cell))"
-                                @onpointerup="@(() => HandlePointerUp(cell))">
+                                aria-label="@cell.Title"
+                                @onpointerdown="args => HandlePointerDown(args, cell)"
+                                @onpointerenter="args => HandlePointerEnter(args, cell)"
+                                @onpointerup="args => HandlePointerUp(args, cell)"
+                                @onpointercancel="HandlePointerCancel">
                             @if (cell.Clue is not null)
                             {
                                 <span class="clue">@cell.Clue.Area</span>
