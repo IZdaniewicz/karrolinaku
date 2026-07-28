@@ -30,6 +30,7 @@ public partial class Home
     private GridCell? DragStartCell { get; set; }
     private bool IsPointerDown { get; set; }
     private bool IsSolved { get; set; }
+    private int NextRectangleColorIndex { get; set; }
     private string StatusMessage { get; set; } = "Zaznacz prostokąt: dokładnie jedna liczba w środku, a pole prostokąta równe tej liczbie.";
     private string StatusMessageClass => IsSolved ? "status-message success" : "status-message";
 
@@ -52,6 +53,7 @@ public partial class Home
         DragStartCell = null;
         IsPointerDown = false;
         IsSolved = false;
+        NextRectangleColorIndex = 0;
         StatusMessage = "Nowa plansza gotowa. Na dużych planszach zacznij od spokojnego wydzielania największych obszarów.";
         PaintGrid();
     }
@@ -63,6 +65,7 @@ public partial class Home
         DragStartCell = null;
         IsPointerDown = false;
         IsSolved = false;
+        NextRectangleColorIndex = 0;
         StatusMessage = "Plansza wyczyszczona. Możesz spokojnie zacząć jeszcze raz.";
         PaintGrid();
     }
@@ -82,7 +85,8 @@ public partial class Home
         }
 
         Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(missing));
-        Board.AcceptedRects.Add(missing.Copy());
+        Board.AcceptedRects.Add(missing with { ColorIndex = NextRectangleColorIndex });
+        AdvanceRectangleColor();
         CurrentRect = null;
         StatusMessage = "Dodałem jeden poprawny prostokąt jako delikatną podpowiedź.";
         PaintGrid();
@@ -96,7 +100,7 @@ public partial class Home
 
         IsPointerDown = true;
         DragStartCell = cell;
-        CurrentRect = BoardRect.FromCells(cell, cell);
+        CurrentRect = BoardRect.FromCells(cell, cell, NextRectangleColorIndex);
         Board.AcceptedRects.RemoveAll(rect => rect.Contains(cell.Row, cell.Col));
         PaintGrid();
     }
@@ -106,7 +110,7 @@ public partial class Home
         if (!IsPointerDown || DragStartCell is null)
             return;
 
-        CurrentRect = BoardRect.FromCells(DragStartCell, cell);
+        CurrentRect = BoardRect.FromCells(DragStartCell, cell, NextRectangleColorIndex);
         PaintGrid();
     }
 
@@ -115,7 +119,7 @@ public partial class Home
         if (!IsPointerDown || DragStartCell is null)
             return;
 
-        CurrentRect = BoardRect.FromCells(DragStartCell, cell);
+        CurrentRect = BoardRect.FromCells(DragStartCell, cell, NextRectangleColorIndex);
         TryAcceptCurrentRect();
         CurrentRect = null;
         DragStartCell = null;
@@ -144,8 +148,14 @@ public partial class Home
 
         Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(CurrentRect));
         Board.AcceptedRects.Add(CurrentRect.Copy());
+        AdvanceRectangleColor();
         StatusMessage = "Dobry prostokąt. Kontynuuj w tym tempie.";
         CompleteGameIfSolved();
+    }
+
+    private void AdvanceRectangleColor()
+    {
+        NextRectangleColorIndex = (NextRectangleColorIndex + 1) % RectangleColorCount;
     }
 
     private void CompleteGameIfSolved()
@@ -209,11 +219,10 @@ public partial class Home
             cell.Title = cell.Clue is null ? "Puste pole" : $"Liczba {cell.Clue.Area}";
         }
 
-        for (int rectIndex = 0; rectIndex < Board.AcceptedRects.Count; rectIndex++)
+        foreach (var rect in Board.AcceptedRects)
         {
-            var rect = Board.AcceptedRects[rectIndex];
             var cssClass = RectIsValid(rect)
-                ? $"accepted valid rect-color-{rectIndex % RectangleColorCount}"
+                ? $"accepted valid rect-color-{rect.ColorIndex}"
                 : "accepted invalid";
 
             foreach (var cell in Board.CellsInside(rect))
@@ -224,9 +233,10 @@ public partial class Home
 
         if (CurrentRect is not null)
         {
+            var previewCssClass = $"preview rect-color-{CurrentRect.ColorIndex}";
             foreach (var cell in Board.CellsInside(CurrentRect))
             {
-                cell.CssClass = "preview";
+                cell.CssClass = previewCssClass;
             }
         }
     }
@@ -395,19 +405,19 @@ public partial class Home
 
     public sealed record Clue(int Row, int Col, int Area);
 
-    public sealed record BoardRect(int LeftUpCornerX, int LeftUpCornerY, int RowsNumber, int ColsNumber)
+    public sealed record BoardRect(int LeftUpCornerX, int LeftUpCornerY, int RowsNumber, int ColsNumber, int ColorIndex = 0)
     {
         public int RightDownCornerX => LeftUpCornerX + RowsNumber - 1;
         public int RightDownCornerY => LeftUpCornerY + ColsNumber - 1;
         public int Area => RowsNumber * ColsNumber;
 
-        public static BoardRect FromCells(GridCell first, GridCell second)
+        public static BoardRect FromCells(GridCell first, GridCell second, int colorIndex = 0)
         {
             int top = Math.Min(first.Row, second.Row);
             int left = Math.Min(first.Col, second.Col);
             int bottom = Math.Max(first.Row, second.Row);
             int right = Math.Max(first.Col, second.Col);
-            return new BoardRect(top, left, bottom - top + 1, right - left + 1);
+            return new BoardRect(top, left, bottom - top + 1, right - left + 1, colorIndex);
         }
 
         public bool Contains(Clue clue) => Contains(clue.Row, clue.Col);
