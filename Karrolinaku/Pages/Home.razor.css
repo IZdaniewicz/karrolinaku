@@ -131,8 +131,8 @@ select:focus-visible, button:focus-visible {
 
 .shikaku-cell.preview,
 .shikaku-cell.preview:hover {
-    background: #d9ead2;
-    box-shadow: inset 0 0 0 2px rgba(35, 74, 45, 0.72);
+    background: var(--rect-background, #d9ead2);
+    box-shadow: inset 0 0 0 2px var(--rect-border, rgba(35, 74, 45, 0.72));
 }
 
 .shikaku-cell.accepted.valid,
@@ -141,42 +141,42 @@ select:focus-visible, button:focus-visible {
     box-shadow: inset 0 0 0 1px var(--rect-border, rgba(61, 104, 50, 0.55));
 }
 
-.shikaku-cell.accepted.valid.rect-color-0 {
+.shikaku-cell.rect-color-0 {
     --rect-background: #d9e9ff;
     --rect-border: rgba(49, 91, 157, 0.62);
 }
 
-.shikaku-cell.accepted.valid.rect-color-1 {
+.shikaku-cell.rect-color-1 {
     --rect-background: #ffefb8;
     --rect-border: rgba(145, 103, 14, 0.58);
 }
 
-.shikaku-cell.accepted.valid.rect-color-2 {
+.shikaku-cell.rect-color-2 {
     --rect-background: #f7d9e9;
     --rect-border: rgba(145, 65, 103, 0.56);
 }
 
-.shikaku-cell.accepted.valid.rect-color-3 {
+.shikaku-cell.rect-color-3 {
     --rect-background: #d8f0de;
     --rect-border: rgba(54, 119, 72, 0.58);
 }
 
-.shikaku-cell.accepted.valid.rect-color-4 {
+.shikaku-cell.rect-color-4 {
     --rect-background: #e8dcfb;
     --rect-border: rgba(95, 68, 151, 0.56);
 }
 
-.shikaku-cell.accepted.valid.rect-color-5 {
+.shikaku-cell.rect-color-5 {
     --rect-background: #f9dec1;
     --rect-border: rgba(154, 91, 28, 0.58);
 }
 
-.shikaku-cell.accepted.valid.rect-color-6 {
+.shikaku-cell.rect-color-6 {
     --rect-background: #d4efee;
     --rect-border: rgba(44, 112, 109, 0.58);
 }
 
-.shikaku-cell.accepted.valid.rect-color-7 {
+.shikaku-cell.rect-color-7 {
     --rect-background: #f5d5ce;
     --rect-border: rgba(150, 71, 56, 0.58);
 }
