@@ -1,4 +1,5 @@
 @page "/"
+@inject Microsoft.JSInterop.IJSRuntime JS
 
 <div class="shikaku-page">
     <main class="game-shell" style="--cols:@Board.ColsNumber; --rows:@Board.RowsNumber">
@@ -28,7 +29,7 @@
             <button type="button" @onclick="ClearBoard">Wyczyść</button>
         </section>
 
-        <section class="mobile-play-help" aria-live="polite">
+        <section class="mobile-play-help @(IsTouchStretching ? "is-stretching" : null)" aria-live="polite">
             <span class="mobile-help-icon" aria-hidden="true">☝️</span>
             <span>@MobileSelectionMessage</span>
             @if (TapStartCell is not null)
@@ -38,7 +39,10 @@
         </section>
 
         <section class="board-card" aria-label="Plansza Shikaku">
-            <div class="shikaku-board" @onpointerleave="HandleBoardPointerLeave">
+            <div class="shikaku-board @(TapStartCell is not null ? "selection-active" : null) @(IsTouchStretching ? "touch-stretching" : null)"
+                 @ref="BoardElement"
+                 @onpointermove="HandleBoardPointerMove"
+                 @onpointerleave="HandleBoardPointerLeave">
                 @foreach (var row in Board.Grid)
                 {
                     foreach (var cell in row)

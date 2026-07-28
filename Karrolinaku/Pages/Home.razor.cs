@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace Karrolinaku.Pages;
 
@@ -33,19 +35,28 @@ public partial class Home
     private GridCell? DragStartCell { get; set; }
     private GridCell? TapStartCell { get; set; }
     private GridCell? TouchPointerDownCell { get; set; }
+    private GridCell? TouchStretchEndCell { get; set; }
     private bool IsPointerDown { get; set; }
     private bool IsSolved { get; set; }
+    private bool IsTouchStretching { get; set; }
     private int NextRectangleColorIndex { get; set; }
+    private long? ActiveTouchPointerId { get; set; }
     private double TouchPointerDownX { get; set; }
     private double TouchPointerDownY { get; set; }
+    private ElementReference BoardElement { get; set; }
+    private BoardBounds? CurrentBoardBounds { get; set; }
+    private IJSObjectReference? BoardInteropModule { get; set; }
     private string StatusMessage { get; set; } = "Zaznacz prostokąt: dokładnie jedna liczba w środku, a pole prostokąta równe tej liczbie.";
     private string StatusMessageClass => IsSolved ? "status-message success" : "status-message";
 
     private DifficultyOption CurrentDifficulty => DifficultyLevels.First(x => x.Key == SelectedDifficultyKey);
 
-    private string MobileSelectionMessage => TapStartCell is null
-        ? "Dotknij pierwszego rogu prostokąta, a potem przeciwległego. Dużą planszę możesz przesuwać palcem."
-        : "Pierwszy róg wybrany. Dotknij przeciwległego rogu albo anuluj wybór.";
+    private string MobileSelectionMessage =>
+        IsTouchStretching
+            ? "Rozciągaj prostokąt palcem. Puść, aby go zatwierdzić."
+            : TapStartCell is null
+                ? "Dotknij punktu początkowego, a potem przeciągnij palcem, aby rozciągnąć prostokąt."
+                : "Punkt początkowy wybrany. Dotknij planszy i przeciągnij do przeciwległego rogu.";
 
     private int CompletionPercent
     {
@@ -101,16 +112,28 @@ public partial class Home
         CompleteGameIfSolved();
     }
 
-    private void HandlePointerDown(PointerEventArgs args, GridCell cell)
+    private async Task HandlePointerDown(PointerEventArgs args, GridCell cell)
     {
         if (IsSolved)
             return;
 
         if (IsTouchLikePointer(args))
         {
-            TouchPointerDownCell = cell;
-            TouchPointerDownX = args.ClientX;
-            TouchPointerDownY = args.ClientY;
+            if (TapStartCell is null)
+            {
+                TouchPointerDownCell = cell;
+                TouchPointerDownX = args.ClientX;
+                TouchPointerDownY = args.ClientY;
+                return;
+            }
+
+            IsTouchStretching = true;
+            ActiveTouchPointerId = args.PointerId;
+            TouchStretchEndCell = cell;
+            CurrentBoardBounds = await GetBoardBoundsAsync();
+            CurrentRect = BoardRect.FromCells(TapStartCell, cell, NextRectangleColorIndex);
+            StatusMessage = "Rozciągnij prostokąt i puść palec, aby go zatwierdzić.";
+            PaintGrid();
             return;
         }
 
@@ -118,6 +141,7 @@ public partial class Home
             return;
 
         TapStartCell = null;
+        ResetTouchStretchState();
         IsPointerDown = true;
         DragStartCell = cell;
         CurrentRect = BoardRect.FromCells(cell, cell, NextRectangleColorIndex);
@@ -133,10 +157,39 @@ public partial class Home
         PaintGrid();
     }
 
+    private void HandleBoardPointerMove(PointerEventArgs args)
+    {
+        if (!IsTouchLikePointer(args) || !IsTouchStretching || ActiveTouchPointerId != args.PointerId)
+            return;
+
+        UpdateTouchStretchFromPoint(args.ClientX, args.ClientY);
+    }
+
     private void HandlePointerUp(PointerEventArgs args, GridCell cell)
     {
         if (IsTouchLikePointer(args))
         {
+            if (IsTouchStretching && ActiveTouchPointerId == args.PointerId)
+            {
+                UpdateTouchStretchFromPoint(args.ClientX, args.ClientY);
+
+                bool accepted = TryAcceptCurrentRect();
+                if (accepted)
+                {
+                    TapStartCell = null;
+                    CurrentRect = null;
+                }
+                else
+                {
+                    StatusMessage += " Przeciągnij ponownie albo anuluj wybór.";
+                }
+
+                ResetTouchStretchState();
+                ResetTouchPointer();
+                PaintGrid();
+                return;
+            }
+
             HandleTouchPointerUp(args);
             return;
         }
@@ -163,41 +216,59 @@ public partial class Home
         if (tappedCell is null || distance > TapMovementTolerance)
             return;
 
-        HandleCellTap(tappedCell);
+        TapStartCell = tappedCell;
+        CurrentRect = BoardRect.FromCells(tappedCell, tappedCell, NextRectangleColorIndex);
+        StatusMessage = "Punkt początkowy wybrany. Dotknij planszy i przeciągnij do przeciwległego rogu.";
+        PaintGrid();
     }
 
-    private void HandleCellTap(GridCell cell)
+    private void UpdateTouchStretchFromPoint(double clientX, double clientY)
     {
-        if (TapStartCell is null)
-        {
-            TapStartCell = cell;
-            CurrentRect = BoardRect.FromCells(cell, cell, NextRectangleColorIndex);
-            StatusMessage = "Pierwszy róg wybrany. Dotknij przeciwległego rogu prostokąta.";
-            PaintGrid();
+        if (TapStartCell is null || CurrentBoardBounds is null)
             return;
-        }
 
-        CurrentRect = BoardRect.FromCells(TapStartCell, cell, NextRectangleColorIndex);
-        bool accepted = TryAcceptCurrentRect();
+        GridCell? endCell = GetCellAtPoint(clientX, clientY, CurrentBoardBounds);
+        if (endCell is null || ReferenceEquals(endCell, TouchStretchEndCell))
+            return;
 
-        if (accepted)
-        {
-            TapStartCell = null;
-            CurrentRect = null;
-        }
-        else
-        {
-            StatusMessage += " Możesz dotknąć innego drugiego rogu albo anulować wybór.";
-        }
-
+        TouchStretchEndCell = endCell;
+        CurrentRect = BoardRect.FromCells(TapStartCell, endCell, NextRectangleColorIndex);
         PaintGrid();
+    }
+
+    private GridCell? GetCellAtPoint(double clientX, double clientY, BoardBounds bounds)
+    {
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+            return null;
+
+        double normalizedX = (clientX - bounds.Left) / bounds.Width;
+        double normalizedY = (clientY - bounds.Top) / bounds.Height;
+
+        int col = Math.Clamp((int)Math.Floor(normalizedX * Board.ColsNumber), 0, Board.ColsNumber - 1);
+        int row = Math.Clamp((int)Math.Floor(normalizedY * Board.RowsNumber), 0, Board.RowsNumber - 1);
+        return Board.Grid[row][col];
+    }
+
+    private async ValueTask<BoardBounds?> GetBoardBoundsAsync()
+    {
+        try
+        {
+            BoardInteropModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./mobile-board.js");
+            return await BoardInteropModule.InvokeAsync<BoardBounds>("getBounds", BoardElement);
+        }
+        catch (JSException)
+        {
+            return null;
+        }
     }
 
     private void CancelTapSelection()
     {
         TapStartCell = null;
         CurrentRect = null;
-        StatusMessage = "Wybór anulowany. Dotknij pierwszego rogu nowego prostokąta.";
+        ResetTouchStretchState();
+        ResetTouchPointer();
+        StatusMessage = "Wybór anulowany. Dotknij punktu początkowego nowego prostokąta.";
         PaintGrid();
     }
 
@@ -206,7 +277,19 @@ public partial class Home
         ResetTouchPointer();
 
         if (IsTouchLikePointer(args))
+        {
+            if (IsTouchStretching)
+            {
+                ResetTouchStretchState();
+                CurrentRect = TapStartCell is null
+                    ? null
+                    : BoardRect.FromCells(TapStartCell, TapStartCell, NextRectangleColorIndex);
+                StatusMessage = "Rozciąganie przerwane. Spróbuj ponownie albo anuluj wybór.";
+                PaintGrid();
+            }
+
             return;
+        }
 
         CancelMouseDrag();
     }
@@ -224,9 +307,7 @@ public partial class Home
 
         DragStartCell = null;
         IsPointerDown = false;
-        CurrentRect = TapStartCell is null
-            ? null
-            : BoardRect.FromCells(TapStartCell, TapStartCell, NextRectangleColorIndex);
+        CurrentRect = null;
         PaintGrid();
     }
 
@@ -278,7 +359,16 @@ public partial class Home
         DragStartCell = null;
         TapStartCell = null;
         IsPointerDown = false;
+        ResetTouchStretchState();
         ResetTouchPointer();
+    }
+
+    private void ResetTouchStretchState()
+    {
+        IsTouchStretching = false;
+        ActiveTouchPointerId = null;
+        TouchStretchEndCell = null;
+        CurrentBoardBounds = null;
     }
 
     private void ResetTouchPointer()
@@ -367,6 +457,9 @@ public partial class Home
 
         if (TapStartCell is not null)
             TapStartCell.CssClass = $"{TapStartCell.CssClass} selection-anchor".Trim();
+
+        if (TouchStretchEndCell is not null && !ReferenceEquals(TouchStretchEndCell, TapStartCell))
+            TouchStretchEndCell.CssClass = $"{TouchStretchEndCell.CssClass} selection-end".Trim();
     }
 
     private bool RectIsValid(BoardRect rect)
@@ -378,6 +471,14 @@ public partial class Home
     public sealed record BoardSizeOption(string Key, string Label, int Rows, int Cols);
 
     public sealed record DifficultyOption(string Key, string Label, string Description, int TargetArea, double SplitChance, int MinArea);
+
+    private sealed class BoardBounds
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+    }
 
     public sealed class PuzzleBoard
     {
