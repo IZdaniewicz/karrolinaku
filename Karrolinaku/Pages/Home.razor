@@ -53,7 +53,7 @@
                                 aria-label="@cell.Title"
                                 @onpointerdown="args => HandlePointerDown(args, cell)"
                                 @onpointerenter="args => HandlePointerEnter(args, cell)"
-                                @onpointerup="args => HandlePointerUp(args, cell)"
+                                @onpointerup="args => HandlePointerUpWithAutoCancel(args, cell)"
                                 @onpointercancel="HandlePointerCancel">
                             @if (cell.Clue is not null)
                             {
