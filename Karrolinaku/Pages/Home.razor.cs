@@ -155,7 +155,9 @@ public partial class Home
     private void HandleTouchPointerUp(PointerEventArgs args)
     {
         var tappedCell = TouchPointerDownCell;
-        double distance = Math.Hypot(args.ClientX - TouchPointerDownX, args.ClientY - TouchPointerDownY);
+        double deltaX = args.ClientX - TouchPointerDownX;
+        double deltaY = args.ClientY - TouchPointerDownY;
+        double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         ResetTouchPointer();
 
         if (tappedCell is null || distance > TapMovementTolerance)
