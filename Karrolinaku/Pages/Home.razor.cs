@@ -2,6 +2,8 @@ namespace Karrolinaku.Pages;
 
 public partial class Home
 {
+    private const int RectangleColorCount = 8;
+
     private static readonly BoardSizeOption[] BoardSizes =
     [
         new("small", "Mała 6 × 6", 6, 6),
@@ -16,9 +18,9 @@ public partial class Home
 
     private static readonly DifficultyOption[] DifficultyLevels =
     [
-        new("calm", "Spokojny", "Duże, czytelne prostokąty. Dobre na pierwszą, relaksującą partię.", 7, 0.42, 4),
-        new("focus", "Skupienie", "Zrównoważona plansza: nadal przyjemna, ale wymaga już planowania.", 5, 0.62, 3),
-        new("deep", "Głębokie myślenie", "Więcej mniejszych obszarów i mniej oczywistych cięć.", 4, 0.78, 2)
+        new("calm", "na chillu", "Duże, czytelne prostokąty. Dobre na pierwszą, relaksującą partię.", 7, 0.42, 4),
+        new("focus", "średni", "Zrównoważona plansza: nadal przyjemna, ale wymaga już planowania.", 5, 0.62, 3),
+        new("deep", "SIGMAAA", "Więcej mniejszych obszarów i mniej oczywistych cięć.", 4, 0.78, 2)
     ];
 
     private string SelectedBoardSizeKey { get; set; } = "medium";
@@ -58,33 +60,24 @@ public partial class Home
     {
         Board.AcceptedRects.Clear();
         CurrentRect = null;
+        DragStartCell = null;
+        IsPointerDown = false;
         IsSolved = false;
         StatusMessage = "Plansza wyczyszczona. Możesz spokojnie zacząć jeszcze raz.";
         PaintGrid();
     }
 
-    private void CheckBoard()
-    {
-        var issues = ValidateBoard();
-        if (issues.Count == 0)
-        {
-            IsSolved = true;
-            StatusMessage = "Pięknie. Cała plansza jest poprawnie podzielona.";
-            return;
-        }
-
-        IsSolved = false;
-        StatusMessage = issues[0];
-    }
-
     private void RevealOneRect()
     {
+        if (IsSolved)
+            return;
+
         var missing = Board.Solution.FirstOrDefault(solution =>
             !Board.AcceptedRects.Any(accepted => accepted.HasSameGeometry(solution)));
 
         if (missing is null)
         {
-            CheckBoard();
+            CompleteGameIfSolved();
             return;
         }
 
@@ -93,10 +86,14 @@ public partial class Home
         CurrentRect = null;
         StatusMessage = "Dodałem jeden poprawny prostokąt jako delikatną podpowiedź.";
         PaintGrid();
+        CompleteGameIfSolved();
     }
 
     private void HandlePointerDown(GridCell cell)
     {
+        if (IsSolved)
+            return;
+
         IsPointerDown = true;
         DragStartCell = cell;
         CurrentRect = BoardRect.FromCells(cell, cell);
@@ -148,12 +145,16 @@ public partial class Home
         Board.AcceptedRects.RemoveAll(rect => rect.Overlaps(CurrentRect));
         Board.AcceptedRects.Add(CurrentRect.Copy());
         StatusMessage = "Dobry prostokąt. Kontynuuj w tym tempie.";
+        CompleteGameIfSolved();
+    }
 
-        if (ValidateBoard().Count == 0)
-        {
-            IsSolved = true;
-            StatusMessage = "Wygrana. Plansza jest domknięta bez konfliktów.";
-        }
+    private void CompleteGameIfSolved()
+    {
+        if (ValidateBoard().Count != 0)
+            return;
+
+        IsSolved = true;
+        StatusMessage = "Wygrana! Cała plansza została poprawnie podzielona.";
     }
 
     private List<string> ValidateBoard()
@@ -208,12 +209,16 @@ public partial class Home
             cell.Title = cell.Clue is null ? "Puste pole" : $"Liczba {cell.Clue.Area}";
         }
 
-        foreach (var rect in Board.AcceptedRects)
+        for (int rectIndex = 0; rectIndex < Board.AcceptedRects.Count; rectIndex++)
         {
-            var isValid = RectIsValid(rect);
+            var rect = Board.AcceptedRects[rectIndex];
+            var cssClass = RectIsValid(rect)
+                ? $"accepted valid rect-color-{rectIndex % RectangleColorCount}"
+                : "accepted invalid";
+
             foreach (var cell in Board.CellsInside(rect))
             {
-                cell.CssClass = isValid ? "accepted valid" : "accepted invalid";
+                cell.CssClass = cssClass;
             }
         }
 
