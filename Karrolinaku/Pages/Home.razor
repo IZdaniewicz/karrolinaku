@@ -24,7 +24,6 @@
             </label>
 
             <button class="primary-action" type="button" @onclick="StartNewGame">Nowa</button>
-            <button type="button" @onclick="CheckBoard">Sprawdź</button>
             <button type="button" @onclick="RevealOneRect">Podpowiedź</button>
             <button type="button" @onclick="ClearBoard">Wyczyść</button>
         </section>
@@ -59,4 +58,16 @@
             </div>
         </section>
     </main>
+
+    @if (IsSolved)
+    {
+        <div class="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title" aria-describedby="win-description">
+            <div class="win-card">
+                <span class="win-emoji" aria-hidden="true">🎉</span>
+                <h2 id="win-title">Wygrana!</h2>
+                <p id="win-description">Cała plansza została poprawnie podzielona.</p>
+                <button class="primary-action restart-action" type="button" @onclick="StartNewGame">Zacznij ponownie</button>
+            </div>
+        </div>
+    }
 </div>
