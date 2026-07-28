@@ -61,11 +61,13 @@
 
     @if (IsSolved)
     {
-        <div class="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title" aria-describedby="win-description">
+        <div class="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title">
             <div class="win-card">
                 <span class="win-emoji" aria-hidden="true">🎉</span>
                 <h2 id="win-title">Wygrana!</h2>
-                <p id="win-description">Cała plansza została poprawnie podzielona.</p>
+                <img src="sigma.png"
+                     alt="Sigma"
+                     style="display:block; width:min(100%, 320px); max-height:50dvh; object-fit:contain; margin:0.75rem auto 1.25rem;" />
                 <button class="primary-action restart-action" type="button" @onclick="StartNewGame">Zacznij ponownie</button>
             </div>
         </div>
