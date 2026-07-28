@@ -18,7 +18,7 @@
 
 .control-bar {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) repeat(4, minmax(92px, auto));
+    grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) repeat(3, minmax(92px, auto));
     gap: 0.65rem;
     align-items: end;
     padding: 0.75rem;
@@ -113,29 +113,76 @@ select:focus-visible, button:focus-visible {
     height: 100%;
     min-width: 0;
     min-height: 0;
+    padding: 0;
     border-right: 1px solid rgba(47, 40, 31, 0.42);
     border-bottom: 1px solid rgba(47, 40, 31, 0.42);
     border-radius: 0;
     background: #fffaf0;
     color: #17120e;
+    line-height: 1;
     transition: background-color 60ms linear, box-shadow 60ms linear;
 }
 
 .shikaku-cell:hover {
+    transform: none;
     background: #f1eadf;
+    box-shadow: none;
 }
 
-.shikaku-cell.preview {
+.shikaku-cell.preview,
+.shikaku-cell.preview:hover {
     background: #d9ead2;
     box-shadow: inset 0 0 0 2px rgba(35, 74, 45, 0.72);
 }
 
-.shikaku-cell.accepted.valid {
-    background: #e0efd8;
-    box-shadow: inset 0 0 0 1px rgba(61, 104, 50, 0.45);
+.shikaku-cell.accepted.valid,
+.shikaku-cell.accepted.valid:hover {
+    background: var(--rect-background, #e0efd8);
+    box-shadow: inset 0 0 0 1px var(--rect-border, rgba(61, 104, 50, 0.55));
 }
 
-.shikaku-cell.accepted.invalid {
+.shikaku-cell.accepted.valid.rect-color-0 {
+    --rect-background: #d9e9ff;
+    --rect-border: rgba(49, 91, 157, 0.62);
+}
+
+.shikaku-cell.accepted.valid.rect-color-1 {
+    --rect-background: #ffefb8;
+    --rect-border: rgba(145, 103, 14, 0.58);
+}
+
+.shikaku-cell.accepted.valid.rect-color-2 {
+    --rect-background: #f7d9e9;
+    --rect-border: rgba(145, 65, 103, 0.56);
+}
+
+.shikaku-cell.accepted.valid.rect-color-3 {
+    --rect-background: #d8f0de;
+    --rect-border: rgba(54, 119, 72, 0.58);
+}
+
+.shikaku-cell.accepted.valid.rect-color-4 {
+    --rect-background: #e8dcfb;
+    --rect-border: rgba(95, 68, 151, 0.56);
+}
+
+.shikaku-cell.accepted.valid.rect-color-5 {
+    --rect-background: #f9dec1;
+    --rect-border: rgba(154, 91, 28, 0.58);
+}
+
+.shikaku-cell.accepted.valid.rect-color-6 {
+    --rect-background: #d4efee;
+    --rect-border: rgba(44, 112, 109, 0.58);
+}
+
+.shikaku-cell.accepted.valid.rect-color-7 {
+    --rect-background: #f5d5ce;
+    --rect-border: rgba(150, 71, 56, 0.58);
+}
+
+.shikaku-cell.accepted.invalid,
+.shikaku-cell.accepted.invalid:hover {
     background: #f1d2c8;
     box-shadow: inset 0 0 0 1px rgba(139, 82, 64, 0.5);
 }
@@ -145,6 +192,7 @@ select:focus-visible, button:focus-visible {
     place-items: center;
     width: 100%;
     height: 100%;
+    margin: 0;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -154,6 +202,7 @@ select:focus-visible, button:focus-visible {
     font-size: clamp(0.68rem, calc(var(--cell-size) * 0.48), 1.2rem);
     font-weight: 950;
     line-height: 1;
+    text-align: center;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
     pointer-events: none;
 }
@@ -188,6 +237,50 @@ select:focus-visible, button:focus-visible {
     color: #17120e;
     box-shadow: 0 2px 8px rgba(79, 64, 51, 0.16);
     font-weight: 950;
+}
+
+.win-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(35, 29, 23, 0.42);
+    backdrop-filter: blur(5px);
+}
+
+.win-card {
+    width: min(420px, 100%);
+    padding: clamp(1.4rem, 4vw, 2.2rem);
+    border: 1px solid rgba(93, 76, 56, 0.18);
+    border-radius: 22px;
+    background: #fffaf3;
+    box-shadow: 0 28px 80px rgba(35, 29, 23, 0.28);
+    color: #302922;
+    text-align: center;
+}
+
+.win-emoji {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 2.6rem;
+    line-height: 1;
+}
+
+.win-card h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+}
+
+.win-card p {
+    margin: 0.65rem 0 1.25rem;
+    color: #61554b;
+    font-weight: 650;
+}
+
+.restart-action {
+    width: 100%;
 }
 
 @media (max-width: 920px) {
